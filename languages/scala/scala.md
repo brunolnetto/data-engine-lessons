@@ -98,9 +98,10 @@ project-root/
 
 In this structure:
 
-src/main/scala contains your main Scala application code.
-src/test/scala contains Scala test code.
-build.sbt is the build configuration file using sbt (Scala Build Tool).
+- `src/main/scala`: contains your main Scala application code;
+- `src/test/scala`: contains Scala test code;
+- `build.sbt`: builds configuration file using `sbt` (Scala Build Tool).
+
 This layout allows for a clean separation of application code and tests, following best practices in Scala development.
 
 ## Conclusion
