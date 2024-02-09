@@ -1,2 +1,2 @@
 # data-engine-lessons
-This is repository for leaning dataengineering
+This is repository for learning data engineering

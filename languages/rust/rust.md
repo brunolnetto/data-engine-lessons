@@ -106,11 +106,11 @@ project-root/
 
 In this structure:
 
-`src/main.rs` contains your main Rust application code.
-`src/lib.rs` is used for library code if your project is a library.
-`src/` can include additional modules for organizing your code.
-`tests/integration_tests.rs` contains integration tests.
-`Cargo.toml` is the configuration file for managing dependencies using Cargo, Rust's package manager.
+- `src/main.rs` contains your main Rust application code.
+- `src/lib.rs` is used for library code if your project is a library.
+- `src/` can include additional modules for organizing your code.
+- `tests/integration_tests.rs` contains integration tests.
+- `Cargo.toml` is the configuration file for managing dependencies using Cargo, Rust's package manager.
 
 This layout encourages a clear separation of application code, library code, and tests, adhering to Rust's best practices.
 
