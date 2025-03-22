@@ -1,0 +1,110 @@
+services:
+  # 🚀 SPARK MASTER
+  spark-master:
+    image: bitnami/spark:3.2.1
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_UI=0.0.0.0
+      - SPARK_HADOOP_FS_DEFAULTFS=hdfs://hadoop-namenode:8020
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "4G"
+        reservations:
+          cpus: "1.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      retries: 3
+      start_period: 30s
+
+  # 🔥 SPARK WORKERS
+  spark-worker:
+    image: bitnami/spark:3.2.1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_HADOOP_FS_DEFAULTFS=hdfs://hadoop-namenode:8020
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      retries: 3
+      start_period: 30s
+
+  # 🏗️ HADOOP NAMENODE
+  hadoop-namenode:
+    image: bde2020/hadoop-namenode:latest
+    environment:
+      - CLUSTER_NAME=hadoop-cluster
+    volumes:
+      - hadoop-namenode:/hadoop/dfs/name
+    ports:
+      - "8020:8020"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "hdfs", "dfsadmin", "-report"]
+      retries: 3
+
+  # 📦 HADOOP DATANODES
+  hadoop-datanode:
+    image: bde2020/hadoop-datanode:latest
+    environment:
+      - CLUSTER_NAME=hadoop-cluster
+      - HDFS_NAMENODE_URI=hdfs://hadoop-namenode:8020
+    volumes:
+      - hadoop-datanode:/hadoop/dfs/data
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "hdfs", "dfsadmin", "-report"]
+      retries: 3
+
+  # 🧑‍🏫 JUPYTERLAB
+  jupyterlab:
+    image: jupyter/pyspark-notebook:latest
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - SPARK_MASTER=spark://spark-master:7077
+      - HDFS_URI=hdfs://hadoop-namenode:8020  # Add HDFS URI
+    ports:
+      - "8888:8888"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888"]
+      retries: 3
+      start_period: 30s
+
+volumes:
+  hadoop-namenode:
+  hadoop-datanode:
