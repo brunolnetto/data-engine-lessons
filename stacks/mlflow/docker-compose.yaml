@@ -13,7 +13,7 @@ services:
       - postgres
 
   postgres:
-    image: postgres:13
+    image: postgres:17
     container_name: postgres
     environment:
       - POSTGRES_USER=mlflow_user
