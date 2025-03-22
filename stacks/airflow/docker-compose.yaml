@@ -1,0 +1,116 @@
+services:
+  # PostgreSQL for Airflow metadata storage
+  airflow-db:
+    image: postgres:15
+    container_name: airflow-db
+    restart: always
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    networks:
+      - airflow-network
+
+  # Redis as Celery broker
+  airflow-redis:
+    image: redis:latest
+    container_name: airflow-redis
+    restart: always
+    networks:
+      - airflow-network
+
+  airflow-init:
+    image: apache/airflow:latest
+    container_name: airflow-init
+    depends_on:
+      - airflow-db
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+    entrypoint: ["bash", "-c", "airflow db migrate && airflow users create --username admin --firstname Admin --lastname User --email admin@example.com --role Admin --password admin"]
+    networks:
+      - airflow-network
+
+  # Airflow Scheduler
+  airflow-scheduler:
+    image: apache/airflow:latest
+    container_name: airflow-scheduler
+    restart: always
+    depends_on:
+      - airflow-db
+      - airflow-redis
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - airflow-logs:/opt/airflow/logs
+      - airflow-plugins:/opt/airflow/plugins
+    networks:
+      - airflow-network
+    command: scheduler
+
+  # Airflow Webserver
+  airflow-webserver:
+    image: apache/airflow:latest
+    container_name: airflow-webserver
+    restart: always
+    depends_on:
+      - airflow-scheduler
+      - airflow-init
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - airflow-logs:/opt/airflow/logs
+      - airflow-plugins:/opt/airflow/plugins
+    networks:
+      - airflow-network
+    command: bash -c "airflow db init && airflow webserver"
+
+  # Airflow Worker for CeleryExecutor
+  airflow-worker:
+    image: apache/airflow:latest
+    container_name: airflow-worker
+    restart: always
+    depends_on:
+      - airflow-scheduler
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - airflow-logs:/opt/airflow/logs
+      - airflow-plugins:/opt/airflow/plugins
+    networks:
+      - airflow-network
+    command: celery worker
+
+volumes:
+  airflow-db-data:
+  airflow-dags:
+  airflow-logs:
+  airflow-plugins:
+
+networks:
+  airflow-network:
+    driver: bridge
