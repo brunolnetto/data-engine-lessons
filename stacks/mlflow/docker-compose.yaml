@@ -1,6 +1,6 @@
 services:
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.10.2
+    image: ghcr.io/mlflow/mlflow:v2.21.2
     container_name: mlflow
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
