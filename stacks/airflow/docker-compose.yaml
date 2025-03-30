@@ -1,5 +1,5 @@
 services:
-  # PostgreSQL for Airflow metadata storage
+  # 🐘 PostgreSQL for Airflow metadata storage
   airflow-db:
     image: postgres:15
     container_name: airflow-db
@@ -19,7 +19,7 @@ services:
     networks:
       - airflow-network
 
-  # Redis as Celery broker
+  # 🔥 Redis for caching
   airflow-redis:
     image: redis:latest
     container_name: airflow-redis
@@ -33,7 +33,7 @@ services:
       start_period: 10s
       timeout: 10s
 
-  # Airflow Init (database setup and user creation)
+  # 🌞 Airflow Init (database setup and user creation)  
   airflow-init:
     image: apache/airflow:latest
     container_name: airflow-init
@@ -50,7 +50,7 @@ services:
     networks:
       - airflow-network
 
-  # Airflow Scheduler
+  # 🕒 Airflow Scheduler
   airflow-scheduler:
     image: apache/airflow:latest
     container_name: airflow-scheduler
@@ -80,7 +80,7 @@ services:
       start_period: 10s
       timeout: 10s
 
-  # Airflow Webserver
+  # 🦉 Airflow Webserver 
   airflow-webserver:
     image: apache/airflow:latest
     container_name: airflow-webserver
@@ -111,7 +111,7 @@ services:
       start_period: 10s
       timeout: 10s
 
-  # Airflow Worker for CeleryExecutor
+  # 🔨 Airflow Worker for CeleryExecutor
   airflow-worker:
     image: apache/airflow:latest
     container_name: airflow-worker

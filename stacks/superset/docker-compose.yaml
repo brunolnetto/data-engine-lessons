@@ -1,5 +1,5 @@
 services:
-  # PostgreSQL for Superset metadata storage
+  # 🐘 PostgreSQL
   superset-db:
     image: postgres:15
     container_name: superset-db
@@ -13,7 +13,7 @@ services:
     networks:
       - superset-network
 
-  # Redis for caching
+  # 🔥 Redis for caching
   superset-redis:
     image: redis:latest
     container_name: superset-redis
@@ -21,7 +21,7 @@ services:
     networks:
       - superset-network
 
-  # Apache Superset
+  # 📊 Apache Superset
   superset:
     image: apache/superset:latest
     container_name: superset
