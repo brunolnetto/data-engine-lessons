@@ -1,0 +1,12 @@
+kafka:
+  clusters:
+    -
+      name: local
+      bootstrapServers: localhost:29091
+      schemaRegistry: http://localhost:8085
+      schemaRegistryAuth:
+        username: username
+        password: password
+      metrics:
+        port: 9997
+        type: JMX

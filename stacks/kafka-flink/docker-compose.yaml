@@ -31,12 +31,15 @@ services:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     environment:
+      KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       SERVER_SERVLET_CONTEXT_PATH: /kafka-ui
       DYNAMIC_CONFIG_ENABLED: 'true'
       AUTH_TYPE: "LOGIN_FORM"
       SPRING_SECURITY_USER_NAME: admin
       SPRING_SECURITY_USER_PASSWORD: pass
+    volumes:
+      - ./config.yml:/etc/kafkaui/dynamic_config.yaml
     depends_on:
       - kafka
     ports:

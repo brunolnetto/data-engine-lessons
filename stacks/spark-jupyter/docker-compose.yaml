@@ -2,6 +2,7 @@ services:
   # 🚀 SPARK MASTER
   spark-master:
     image: bitnami/spark:3.2.1
+    container_name: spark-master
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_UI=0.0.0.0
@@ -45,8 +46,10 @@ services:
   # 🏗️ HADOOP NAMENODE
   hadoop-namenode:
     image: bde2020/hadoop-namenode:latest
+    container_name: hadoop-namenode
     environment:
       - CLUSTER_NAME=hadoop-cluster
+      - dfs.namenode.datanode.registration.ip-hostname-check=false
     volumes:
       - hadoop-namenode:/hadoop/dfs/name
     ports:
@@ -66,9 +69,13 @@ services:
   # 📦 HADOOP DATANODES
   hadoop-datanode:
     image: bde2020/hadoop-datanode:latest
+    container_name: hadoop-datanode
     environment:
       - CLUSTER_NAME=hadoop-cluster
       - HDFS_NAMENODE_URI=hdfs://hadoop-namenode:8020
+    depends_on:
+      hadoop-namenode:
+        condition: service_healthy
     volumes:
       - hadoop-datanode:/hadoop/dfs/data
     deploy:
@@ -86,6 +93,7 @@ services:
   # 🧑‍🏫 JUPYTERLAB
   jupyterlab:
     image: jupyter/pyspark-notebook:latest
+    container_name: jupyterlab
     environment:
       - JUPYTER_ENABLE_LAB=yes
       - SPARK_MASTER=spark://spark-master:7077
