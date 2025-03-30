@@ -78,6 +78,7 @@ services:
         condition: service_healthy
     volumes:
       - hadoop-datanode:/hadoop/dfs/data
+      - ./core-site.xml:/etc/hadoop/core-site.xml
     deploy:
       resources:
         limits:
