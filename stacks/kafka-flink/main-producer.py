@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from confluent_kafka.admin import AdminClient, NewTopic
 from confluent_kafka import Producer
 import json
 
@@ -10,6 +11,12 @@ producer = Producer({
     'bootstrap.servers': 'localhost:9092',  # Kafka broker address
     'security.protocol': 'PLAINTEXT',  # Ensure it is PLAINTEXT if you're not using SSL
 })
+
+admin_client = AdminClient({"bootstrap.servers": "localhost:9092"})
+
+# Define the topic configuration
+topic_list = [NewTopic("my_topic", num_partitions=3, replication_factor=1)]
+admin_client.create_topics(topic_list)
 
 # Kafka producer callback
 def delivery_callback(err, msg):
