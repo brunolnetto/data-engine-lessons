@@ -2,7 +2,7 @@ kafka:
   clusters:
     -
       name: local
-      bootstrapServers: localhost:29091
+      bootstrapServers: kafka:9092
       schemaRegistry: http://localhost:8085
       schemaRegistryAuth:
         username: username
