@@ -15,8 +15,10 @@ producer = Producer({
 admin_client = AdminClient({"bootstrap.servers": "localhost:9092"})
 
 # Define the topic configuration
-topic_list = [NewTopic("my_topic", num_partitions=3, replication_factor=1)]
-admin_client.create_topics(topic_list)
+existing_topics = admin_client.list_topics().topics
+if "my_topic" not in existing_topics:
+    admin_client.create_topics([NewTopic("my_topic", num_partitions=3, replication_factor=1)])
+
 
 # Kafka producer callback
 def delivery_callback(err, msg):
