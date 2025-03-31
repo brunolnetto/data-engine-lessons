@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink
+  template:
+    metadata:
+      labels:
+        app: flink
+    spec:
+      containers:
+      - name: flink
+        image: "{{ .Values.flink.image }}"
+        ports:
+        - containerPort: {{ .Values.flink.port }}
+        command: ["jobmanager", "webui"]
