@@ -1,7 +1,7 @@
 services:
   # 🐘 PostgreSQL for Hive Metastore
   metastore-db:
-    image: postgres:15
+    image: postgres:17
     container_name: metastore-db
     restart: always
     environment:
