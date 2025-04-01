@@ -1,0 +1,139 @@
+version: "3.8"
+
+services:
+  # 🐘 PostgreSQL for Hive Metastore
+  metastore-db:
+    image: postgres:17
+    network:
+      - traefik_network
+    restart: always
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+      POSTGRES_DB: metastore
+    volumes:
+      - metastore-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "hive", "-d", "metastore", "-h", "localhost"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    labels:
+      - "traefik.enable=false"
+
+  # 🐝 Apache Hive Metastore
+  hive-metastore:
+    image: apache/hive:4.0.0-beta-1
+    network:
+      - traefik_network
+    restart: always
+    depends_on:
+      - metastore-db  
+    environment:
+      SERVICE_NAME: metastore
+      HIVE_METASTORE_USER: hive
+      HIVE_METASTORE_PASSWORD: hive
+      HIVE_METASTORE_DATABASE: metastore
+      HIVE_METASTORE_DB_HOST: metastore-db
+      HIVE_METASTORE_PORT: 9083
+    command: >
+      /opt/hive/bin/schematool -initSchema -dbType postgres &&
+      /opt/hive/bin/hive --service metastore
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "9083"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    labels:
+      - "traefik.enable=false"
+
+  # 📊 Trino Query Engine
+  trino:
+    image: trinodb/trino:latest
+    network:
+      - traefik_network
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./trino-config:/etc/trino
+    depends_on:
+      - hive-metastore
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+        reservations:
+          memory: 2G
+          cpus: '1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.trino.rule=Host(`trino.localhost`)"
+      - "traefik.http.services.trino.loadbalancer.server.port=8080"
+
+  # ☁️ MinIO for S3-like storage
+  minio:
+    image: quay.io/minio/minio
+    network:
+      - traefik_network
+    restart: always
+    ports:
+      - "9000:9000"   # S3 API
+      - "9090:9090"   # MinIO Console
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9090"
+    healthcheck:
+      test: ["CMD", "mc", "alias", "set", "local", "http://localhost:9000", "admin", "admin123"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+
+  # 📂 MinIO Client for managing MinIO buckets
+  minio-client:
+    image: minio/mc
+    network:
+      - traefik_network
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 admin admin123;
+      mc mb local/iceberg-data;
+      mc policy set public local/iceberg-data;
+      exit 0;
+      "
+    healthcheck:
+      test: ["CMD", "mc", "ls", "local/iceberg-data"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    labels:
+      - "traefik.enable=false"
+
+volumes:
+  metastore-db-data:
+  minio-data:
+
+networks:
+  traefik_network:
+    external: true

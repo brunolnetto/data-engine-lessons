@@ -1,0 +1,144 @@
+version: "3.8"
+
+services:
+  # 🐘 PostgreSQL
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    volumes:
+      - metadata_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=FoolishPassword
+      - POSTGRES_USER=druid
+      - POSTGRES_DB=druid
+    networks:
+      - traefik_network
+
+  # 🐻 Zookeeper
+  zookeeper:
+    container_name: zookeeper
+    image: zookeeper:3.9.3
+    environment:
+      - ZOO_MY_ID=1
+    networks:
+      - traefik_network
+
+  # 🗂️ Coordinator
+  coordinator:
+    image: apache/druid:32.0.1
+    container_name: coordinator
+    volumes:
+      - druid_shared:/opt/shared
+      - coordinator_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - postgres
+    command:
+      - coordinator
+    env_file:
+      - environment
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.druid-coordinator.rule=Host(`druid-coordinator.localhost`)"
+      - "traefik.http.services.druid-coordinator.loadbalancer.server.port=8081"
+
+  # 📊 Broker
+  broker:
+    image: apache/druid:32.0.1
+    container_name: broker
+    volumes:
+      - broker_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - postgres
+      - coordinator
+    command:
+      - broker
+    env_file:
+      - environment
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.druid-broker.rule=Host(`druid-broker.localhost`)"
+      - "traefik.http.services.druid-broker.loadbalancer.server.port=8082"
+
+  # 📦 Historical
+  historical:
+    image: apache/druid:32.0.1
+    container_name: historical
+    volumes:
+      - druid_shared:/opt/shared
+      - historical_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - postgres
+      - coordinator
+    command:
+      - historical
+    env_file:
+      - environment
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.druid-historical.rule=Host(`druid-historical.localhost`)"
+      - "traefik.http.services.druid-historical.loadbalancer.server.port=8083"
+
+  # 🕒 MiddleManager
+  middlemanager:
+    image: apache/druid:32.0.1
+    container_name: middlemanager
+    volumes:
+      - druid_shared:/opt/shared
+      - middle_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - postgres
+      - coordinator
+    command:
+      - middleManager
+    env_file:
+      - environment
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.druid-middlemanager.rule=Host(`druid-middlemanager.localhost`)"
+      - "traefik.http.services.druid-middlemanager.loadbalancer.server.port=8091"
+
+  # 📈 Router
+  router:
+    image: apache/druid:32.0.1
+    container_name: router
+    volumes:
+      - router_var:/opt/druid/var
+    depends_on:
+      - zookeeper
+      - postgres
+      - coordinator
+    command:
+      - router
+    env_file:
+      - environment
+    networks:
+      - traefik_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.druid-router.rule=Host(`druid.localhost`)"
+      - "traefik.http.services.druid-router.loadbalancer.server.port=8888"
+
+volumes:
+  metadata_data: {}
+  middle_var: {}
+  historical_var: {}
+  broker_var: {}
+  coordinator_var: {}
+  router_var: {}
+  druid_shared: {}
+
+networks:
+  traefik_network:
+    external: true

@@ -1,0 +1,150 @@
+version: "3.7"
+
+services:
+  airflow-db:
+    image: postgres:17
+    network:
+      - traefik_network
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow", "-d", "airflow", "-h", "localhost"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    restart: always
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    networks:
+      - traefik_network
+
+  airflow-redis:
+    image: redis:latest
+    network:
+      - traefik_network
+    restart: always
+    networks:
+      - traefik_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+  airflow-init:
+    image: apache/airflow:latest
+    network:
+      - traefik_network
+    depends_on:
+      - airflow-db
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+    entrypoint: [
+      "bash",
+      "-c",
+      "airflow db migrate && airflow users create --username admin --firstname Admin --lastname User --email admin@example.com --role Admin --password admin"
+    ]
+    networks:
+      - traefik_network
+
+  airflow-scheduler:
+    image: apache/airflow:latest
+    network:
+      - traefik_network
+    restart: always
+    depends_on:
+      - airflow-db
+      - airflow-redis
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - airflow-logs:/opt/airflow/logs
+      - airflow-plugins:/opt/airflow/plugins
+    networks:
+      - traefik_network
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8793/health"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+  airflow-webserver:
+    image: apache/airflow:latest
+    network:
+      - traefik_network
+    restart: always
+    depends_on:
+      - airflow-scheduler
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - airflow-logs:/opt/airflow/logs
+      - airflow-plugins:/opt/airflow/plugins
+    networks:
+      - traefik_network
+    command: bash -c "airflow db init && airflow webserver"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.airflow.rule=Host(`airflow.localhost`)"
+      - "traefik.http.routers.airflow.entrypoints=websecure"
+      - "traefik.http.services.airflow.loadbalancer.server.port=8080"
+
+  airflow-worker:
+    image: apache/airflow:latest
+    network:
+      - traefik_network
+    restart: always
+    depends_on:
+      - airflow-scheduler
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://airflow-redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - airflow-logs:/opt/airflow/logs
+      - airflow-plugins:/opt/airflow/plugins
+    networks:
+      - traefik_network
+    command: celery worker
+
+volumes:
+  airflow-db-data:
+  airflow-dags:
+  airflow-logs:
+  airflow-plugins:
+
+networks:
+  traefik_network:
+    external: true

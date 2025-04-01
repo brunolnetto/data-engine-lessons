@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  # 🦓 Zookeeper for Kafka
+  zookeeper:
+    image: wurstmeister/zookeeper
+    network:
+      - traefik_network
+    ports:
+      - "2181:2181"
+    labels:
+      - "traefik.enable=false"
+
+  # 🐄 Kafka for event streaming
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    network:
+      - traefik_network
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"  # External access
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    labels:
+      - "traefik.enable=false"
+
+  # 🔎 Kafka UI for managing Kafka
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    network:
+      - traefik_network
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)"
+      - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
+
+  # 🎲 Flink for stream processing
+  flink:
+    image: flink:latest
+    network:
+      - traefik_network
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"  # Flink Job Manager Web UI
+    command: ["jobmanager", "webui"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flink.rule=Host(`flink.localhost`)"
+      - "traefik.http.services.flink.loadbalancer.server.port=8081"
+
+volumes:
+  # Volumes can be added if persistent data storage is required for any service
+
+networks:
+  traefik_network:
+    external: true

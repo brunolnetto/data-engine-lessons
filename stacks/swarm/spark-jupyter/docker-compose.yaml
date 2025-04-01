@@ -1,0 +1,145 @@
+version: "3.8"
+
+services:
+  # 👑 Apache Spark Master
+  spark-master:
+    image: bitnami/spark:3.5.5
+    network:
+      - traefik_network
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_UI=0.0.0.0
+      - SPARK_HADOOP_FS_DEFAULTFS=hdfs://hadoop-namenode:8020
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "4G"
+        reservations:
+          cpus: "1.0"
+          memory: "2G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spark-master.rule=Host(`spark-master.localhost`)"
+      - "traefik.http.services.spark-master.loadbalancer.server.port=8080"
+
+  # 🔥 Apache Spark Workers
+  spark-worker:
+    image: bitnami/spark:3.5.5
+    network:
+      - traefik_network
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_HADOOP_FS_DEFAULTFS=hdfs://hadoop-namenode:8020
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=false"
+
+  # 🏗️ Hadoop Namenode
+  hadoop-namenode:
+    image: bde2020/hadoop-namenode:latest
+    network:
+      - traefik_network
+    environment:
+      - CLUSTER_NAME=hadoop-cluster
+      - dfs.namenode.datanode.registration.ip-hostname-check=false
+    volumes:
+      - hadoop-namenode:/hadoop/dfs/name
+    ports:
+      - "8020:8020"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "hdfs", "dfsadmin", "-report"]
+      retries: 3
+    labels:
+      - "traefik.enable=false"
+
+  # 📦 Hadoop Datanodes
+  hadoop-datanode:
+    image: bde2020/hadoop-datanode:latest
+    network:
+      - traefik_network
+    environment:
+      - CLUSTER_NAME=hadoop-cluster
+      - HDFS_NAMENODE_URI=hdfs://hadoop-namenode:8020
+    depends_on:
+      hadoop-namenode:
+        condition: service_healthy
+    volumes:
+      - hadoop-datanode:/hadoop/dfs/data
+      - ./core-site.xml:/etc/hadoop/core-site.xml
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "hdfs", "dfsadmin", "-report"]
+      retries: 3
+    labels:
+      - "traefik.enable=false"
+
+  # 🧑‍🏫 Jupyterlab
+  jupyterlab:
+    image: jupyter/pyspark-notebook:latest
+    network:
+      - traefik_network
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - SPARK_MASTER=spark://spark-master:7077
+      - HDFS_URI=hdfs://hadoop-namenode:8020
+    ports:
+      - "8888:8888"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2G"
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888"]
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jupyterlab.rule=Host(`jupyterlab.localhost`)"
+      - "traefik.http.services.jupyterlab.loadbalancer.server.port=8888"
+
+volumes:
+  hadoop-namenode:
+  hadoop-datanode:
+
+networks:
+  traefik_network:
+    external: true

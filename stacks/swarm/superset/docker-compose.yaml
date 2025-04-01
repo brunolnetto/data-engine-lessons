@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  # 🐘 PostgreSQL
+  superset-db:
+    image: postgres:17
+    container_name: superset-db
+    restart: always
+    environment:
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: superset
+      POSTGRES_DB: superset
+    volumes:
+      - superset-db-data:/var/lib/postgresql/data
+    networks:
+      - superset-network
+
+  # 🔥 Redis for caching
+  superset-redis:
+    image: redis:latest
+    container_name: superset-redis
+    restart: always
+    networks:
+      - superset-network
+
+  # 📊 Apache Superset
+  superset:
+    image: apache/superset:latest
+    container_name: superset
+    restart: always
+    ports:
+      - "8088:8088"  # Superset web UI
+    environment:
+      SUPERSET_CONFIG_PATH: /etc/superset/superset_config.py
+      DATABASE_URL: postgresql://superset:superset@superset-db:5432/superset
+      REDIS_URL: redis://superset-redis:6379/0
+    volumes:
+      - ./superset_config.py:/etc/superset/superset_config.py
+    depends_on:
+      - superset-db
+      - superset-redis
+    networks:
+      - superset-network
+    command: >
+        /bin/bash -c "pip install psycopg2-binary && superset db upgrade && superset init && superset run -p 8088 --with-threads --reload --debugger"
+
+volumes:
+  superset-db-data:
+  superset-config:
+
+networks:
+  traefik-network:
+    driver: bridge

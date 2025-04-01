@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  # 🐘 PostgreSQL for MLflow
+  postgres:
+    image: postgres:17
+    network:
+      - traefik_network
+    environment:
+      - POSTGRES_USER=mlflow_user
+      - POSTGRES_PASSWORD=mlflow_password
+      - POSTGRES_DB=mlflow_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    labels:
+      - "traefik.enable=false"
+
+  # 📊 MLflow for model tracking and management
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.21.2
+    network:
+      - traefik_network
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --default-artifact-root /mlflow
+    depends_on:
+      - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mlflow.rule=Host(`mlflow.localhost`)"
+      - "traefik.http.services.mlflow.loadbalancer.server.port=5000"
+
+volumes:
+  mlflow_data:
+  postgres_data:
+
+networks:
+  traefik_network:
+    external: true
