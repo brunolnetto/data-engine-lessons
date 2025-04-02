@@ -3,8 +3,6 @@ version: "3.7"
 services:
   airflow-db:
     image: postgres:17
-    network:
-      - traefik_network
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
@@ -23,8 +21,6 @@ services:
 
   airflow-redis:
     image: redis:latest
-    network:
-      - traefik_network
     restart: always
     networks:
       - traefik_network
@@ -37,8 +33,6 @@ services:
 
   airflow-init:
     image: apache/airflow:latest
-    network:
-      - traefik_network
     depends_on:
       - airflow-db
     environment:
@@ -54,8 +48,6 @@ services:
 
   airflow-scheduler:
     image: apache/airflow:latest
-    network:
-      - traefik_network
     restart: always
     depends_on:
       - airflow-db
@@ -84,8 +76,6 @@ services:
 
   airflow-webserver:
     image: apache/airflow:latest
-    network:
-      - traefik_network
     restart: always
     depends_on:
       - airflow-scheduler
@@ -118,8 +108,6 @@ services:
 
   airflow-worker:
     image: apache/airflow:latest
-    network:
-      - traefik_network
     restart: always
     depends_on:
       - airflow-scheduler

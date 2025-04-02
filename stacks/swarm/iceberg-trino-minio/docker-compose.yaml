@@ -4,8 +4,6 @@ services:
   # 🐘 PostgreSQL for Hive Metastore
   metastore-db:
     image: postgres:17
-    network:
-      - traefik_network
     restart: always
     environment:
       POSTGRES_USER: hive
@@ -21,12 +19,13 @@ services:
       timeout: 10s
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
+    
 
   # 🐝 Apache Hive Metastore
   hive-metastore:
     image: apache/hive:4.0.0-beta-1
-    network:
-      - traefik_network
     restart: always
     depends_on:
       - metastore-db  
@@ -48,12 +47,12 @@ services:
       timeout: 10s
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
   # 📊 Trino Query Engine
   trino:
     image: trinodb/trino:latest
-    network:
-      - traefik_network
     restart: always
     ports:
       - "8080:8080"
@@ -79,12 +78,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.trino.rule=Host(`trino.localhost`)"
       - "traefik.http.services.trino.loadbalancer.server.port=8080"
+    networks:
+      - traefik_network
 
   # ☁️ MinIO for S3-like storage
   minio:
     image: quay.io/minio/minio
-    network:
-      - traefik_network
     restart: always
     ports:
       - "9000:9000"   # S3 API
@@ -105,12 +104,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
+    networks:
+      - traefik_network
 
   # 📂 MinIO Client for managing MinIO buckets
   minio-client:
     image: minio/mc
-    network:
-      - traefik_network
     depends_on:
       - minio
     entrypoint: >
@@ -129,6 +128,8 @@ services:
       timeout: 10s
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
 volumes:
   metastore-db-data:

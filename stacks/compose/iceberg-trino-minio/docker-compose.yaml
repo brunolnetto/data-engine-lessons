@@ -20,7 +20,7 @@ services:
       timeout: 10s
 
    # 🐝 Apache Hive Metastore
-  hive-metastore:
+  hudi-hive-metastore:
     image: apache/hive:4.0.0-beta-1
     container_name: hive-metastore
     restart: always

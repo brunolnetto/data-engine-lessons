@@ -4,18 +4,16 @@ services:
   # 🦓 Zookeeper for Kafka
   zookeeper:
     image: wurstmeister/zookeeper
-    network:
-      - traefik_network
     ports:
       - "2181:2181"
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
   # 🐄 Kafka for event streaming
   kafka:
     image: confluentinc/cp-kafka:latest
-    network:
-      - traefik_network
     depends_on:
       - zookeeper
     ports:
@@ -29,12 +27,12 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
   # 🔎 Kafka UI for managing Kafka
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    network:
-      - traefik_network
     depends_on:
       - kafka
     environment:
@@ -46,12 +44,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.kafka-ui.rule=Host(`kafka-ui.localhost`)"
       - "traefik.http.services.kafka-ui.loadbalancer.server.port=8080"
+    networks:
+      - traefik_network
 
   # 🎲 Flink for stream processing
   flink:
     image: flink:latest
-    network:
-      - traefik_network
     depends_on:
       - kafka
     ports:
@@ -61,6 +59,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.flink.rule=Host(`flink.localhost`)"
       - "traefik.http.services.flink.loadbalancer.server.port=8081"
+    networks:
+      - traefik_network
 
 volumes:
   # Volumes can be added if persistent data storage is required for any service

@@ -4,8 +4,6 @@ services:
   # 👑 Apache Spark Master
   spark-master:
     image: bitnami/spark:3.5.5
-    network:
-      - traefik_network
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_UI=0.0.0.0
@@ -28,12 +26,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.spark-master.rule=Host(`spark-master.localhost`)"
       - "traefik.http.services.spark-master.loadbalancer.server.port=8080"
+    networks:
+      - traefik_network
 
   # 🔥 Apache Spark Workers
   spark-worker:
     image: bitnami/spark:3.5.5
-    network:
-      - traefik_network
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -53,12 +51,12 @@ services:
       start_period: 30s
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
   # 🏗️ Hadoop Namenode
   hadoop-namenode:
     image: bde2020/hadoop-namenode:latest
-    network:
-      - traefik_network
     environment:
       - CLUSTER_NAME=hadoop-cluster
       - dfs.namenode.datanode.registration.ip-hostname-check=false
@@ -79,12 +77,12 @@ services:
       retries: 3
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
   # 📦 Hadoop Datanodes
   hadoop-datanode:
     image: bde2020/hadoop-datanode:latest
-    network:
-      - traefik_network
     environment:
       - CLUSTER_NAME=hadoop-cluster
       - HDFS_NAMENODE_URI=hdfs://hadoop-namenode:8020
@@ -107,12 +105,12 @@ services:
       retries: 3
     labels:
       - "traefik.enable=false"
+    networks:
+      - traefik_network
 
   # 🧑‍🏫 Jupyterlab
   jupyterlab:
     image: jupyter/pyspark-notebook:latest
-    network:
-      - traefik_network
     environment:
       - JUPYTER_ENABLE_LAB=yes
       - SPARK_MASTER=spark://spark-master:7077
@@ -135,6 +133,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.jupyterlab.rule=Host(`jupyterlab.localhost`)"
       - "traefik.http.services.jupyterlab.loadbalancer.server.port=8888"
+    networks:
+      - traefik_network
 
 volumes:
   hadoop-namenode:
