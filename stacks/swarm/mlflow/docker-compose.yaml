@@ -17,7 +17,7 @@ services:
 
   # 📊 MLflow for model tracking and management
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.21.2
+    image: ghcr.io/mlflow/mlflow:v2.21.3
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
     ports:
