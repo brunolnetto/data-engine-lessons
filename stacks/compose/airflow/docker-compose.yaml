@@ -45,7 +45,8 @@ services:
     entrypoint: [
       "bash", 
       "-c", 
-      "airflow db migrate && airflow users create --username admin --firstname Admin --lastname User --email admin@example.com --role Admin --password admin"
+      "airflow db migrate && \ 
+      airflow users create --username admin --password admin --firstname Admin --lastname User --email admin@example.com --role Admin"
     ]
     networks:
       - airflow-network
@@ -66,10 +67,12 @@ services:
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-db:5432/airflow
       AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC: 60
+      AIRFLOW__SCHEDULER__JOB_HEARTBEAT_SEC: 120
     volumes:
-      - airflow-dags:/opt/airflow/dags
-      - airflow-logs:/opt/airflow/logs
-      - airflow-plugins:/opt/airflow/plugins
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
     networks:
       - airflow-network
     command: scheduler
@@ -98,9 +101,9 @@ services:
       AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     volumes:
-      - airflow-dags:/opt/airflow/dags
-      - airflow-logs:/opt/airflow/logs
-      - airflow-plugins:/opt/airflow/plugins
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
     networks:
       - airflow-network
     command: bash -c "airflow db init && airflow webserver"
@@ -127,9 +130,9 @@ services:
       AIRFLOW__CORE__FERNET_KEY: "-sxEY3dsTb2ov1PUAu5TfHpZp02D9IQwLaG6NYwdSgM="
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     volumes:
-      - airflow-dags:/opt/airflow/dags
-      - airflow-logs:/opt/airflow/logs
-      - airflow-plugins:/opt/airflow/plugins
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
     networks:
       - airflow-network
     command: celery worker
