@@ -21,14 +21,12 @@ This table organizes the stages of the data lifecycle with open-source tools for
 
 ---
 
-## 🪄 Observações:
+## 🪄 Notes:
 
-- 🥉 **Bronze Layer**: Estágios 1–3 (raw e staging).
-- 🥈 **Silver Layer**: Estágio 4–5 (dados limpos e estruturados).
-- 🥇 **Gold Layer**: Estágio 6 em diante (modelo de negócio, consumo, monitoramento).
-- Ferramentas como **Spark, dbt e Airflow** podem ser utilizadas em múltiplas camadas, dependendo da arquitetura.
-
-
+- 🥉 **Bronze Layer**: Stages 1–3 (raw and staging data).
+- 🥈 **Silver Layer**: Stages 4–5 (clean and structured data).
+- 🥇 **Gold Layer**: Stage 6 onward (business modeling, consumption, monitoring).
+- Tools like **Spark, dbt, and Airflow** can be used across multiple layers, depending on the architecture.
 
 # Installation Requirements for Hosting Docker Compose and Kubernetes Stacks
 
