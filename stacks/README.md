@@ -1,3 +1,35 @@
+# 🧠 Data Lifecycle + Open-Source Tools (Medallion Architecture)
+
+This table organizes the stages of the data lifecycle with open-source tools for each step, inspired by the *Medallion Architecture* pattern.
+
+| 🧩 **Stage** | 🎯 **Objective** | 🛠️ **Possible Tools (OSS)** |
+|-------------|------------------|------------------------------|
+| **1. Data Ingestion (Raw)** | Collect and extract data from diverse sources | [Airbyte](https://airbyte.io), [Apache Nifi](https://nifi.apache.org/), [Meltano](https://meltano.com), [Kafka Connect](https://kafka.apache.org/) |
+| **2. Storage (Data Lake)** | Store raw data in a cost-effective way | [MinIO](https://min.io), [Ceph](https://ceph.io), [HDFS](https://hadoop.apache.org/), [LakeFS](https://lakefs.io) |
+| **3. Batch/Stream Processing** | Clean, parse, enrich and transform data | [Apache Spark](https://spark.apache.org/), [Flink](https://flink.apache.org/), [Pandas](https://pandas.pydata.org/), [Beam](https://beam.apache.org/) |
+| **4. Lakehouse / Table Format** | Ensure consistency, versioning, ACID guarantees | [Delta Lake](https://delta.io), [Apache Iceberg](https://iceberg.apache.org/), [Apache Hudi](https://hudi.apache.org/) |
+| **5. Modeling & Transformations (Silver/Gold)** | Business logic, metric definitions, domain rules | [dbt](https://www.getdbt.com/), [Dagster](https://dagster.io/), [SQLMesh](https://sqlmesh.com/) |
+| **6. Orchestration & Scheduling** | Automate pipelines, monitor failures and dependencies | [Apache Airflow](https://airflow.apache.org/), [Prefect](https://www.prefect.io/), [Dagster](https://dagster.io) |
+| **7. Data Quality & Observability** | Ensure data integrity, consistency, and reliability | [Great Expectations](https://greatexpectations.io/), [Soda](https://soda.io/), [Monte Carlo (OSS)](https://github.com/monte-carlo-data) |
+| **8. Governance & Metadata** | Cataloging, lineage, classification, access control | [OpenMetadata](https://open-metadata.org), [Amundsen](https://www.amundsen.io/), [DataHub](https://datahubproject.io/) |
+| **9. Data Access / Virtualization** | Expose data via SQL/REST, federate multiple sources | [Dremio](https://www.dremio.com/), [Trino](https://trino.io/), [Apache Drill](https://drill.apache.org/) |
+| **10. Consumption / Visualization** | Dashboards, reporting, ad-hoc exploration | [Metabase](https://www.metabase.com/), [Apache Superset](https://superset.apache.org/), [Redash](https://redash.io/) |
+| **11. Data Science & Experimentation** | Data exploration, model prototyping | [JupyterHub](https://jupyter.org/hub), [VSCode + Remote Dev](https://code.visualstudio.com/), [Polynote](https://polynote.org/) |
+| **12. ML Lifecycle (Optional)** | Training, experiment tracking, and model deployment | [MLflow](https://mlflow.org/), [DVC](https://dvc.org/), [Kubeflow](https://www.kubeflow.org/), [ZenML](https://zenml.io/) |
+| **13. Monitoring & Logging** | Observability, metrics, logs, traces | [Prometheus](https://prometheus.io), [Grafana](https://grafana.com), [Loki](https://grafana.com/oss/loki/), [OpenTelemetry](https://opentelemetry.io) |
+
+
+---
+
+## 🪄 Observações:
+
+- 🥉 **Bronze Layer**: Estágios 1–3 (raw e staging).
+- 🥈 **Silver Layer**: Estágio 4–5 (dados limpos e estruturados).
+- 🥇 **Gold Layer**: Estágio 6 em diante (modelo de negócio, consumo, monitoramento).
+- Ferramentas como **Spark, dbt e Airflow** podem ser utilizadas em múltiplas camadas, dependendo da arquitetura.
+
+
+
 # Installation Requirements for Hosting Docker Compose and Kubernetes Stacks
 
 ## Prerequisites
