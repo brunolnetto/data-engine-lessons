@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  nessie:
+    image: ghcr.io/projectnessie/nessie
+    ports:
+      - "19120:19120"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19120/api/v1/config"]
+      interval: 10s
+      retries: 5
+
