@@ -3,6 +3,8 @@ services:
   metastore-db:
     image: postgres:17
     container_name: metastore-db
+    networks:
+      - trino-network
     restart: always
     environment:
       POSTGRES_USER: hive
@@ -23,6 +25,8 @@ services:
   hudi-hive-metastore:
     image: apache/hive:4.0.0-beta-1
     container_name: hive-metastore
+    networks:
+      - trino-network
     restart: always
     depends_on:
       - metastore-db  
@@ -47,15 +51,15 @@ services:
 
   # 📊 Trino Query Engine
   trino:
-    image: trinodb/trino:latest  # This image already includes the Trino server
-    container_name: trino-server
+    image: trinodb/trino:latest
+    container_name: trino
+    hostname: trino
+    networks:
+      - trino-network
     ports:
-      - "8080:8080"  # Expose the Trino port
+      - "8080:8080"
     volumes:
-      - ./trino-config:/etc/trino  # Mount your config directory
-    environment:
-      - JAVA_HOME=/usr/lib/jvm/java-11-openjdk
-    entrypoint: /bin/bash -c "curl -o /tmp/trino-cli https://repo1.maven.org/maven2/io/trino/trino-cli/447/trino-cli-447-executable.jar && chmod +x /tmp/trino-cli && /bin/sh -c 'exec /opt/trino/bin/trino-server'"
+      - ./trino-config:/etc/trino
     depends_on:
       - hudi-hive-metastore
     healthcheck:
@@ -65,10 +69,34 @@ services:
       start_period: 10s
       timeout: 10s
 
+  # 🧭 Trino CLI
+  trino-cli:
+    image: openjdk:11
+    container_name: trino-cli
+    networks:
+      - trino-network
+    depends_on:
+      - trino
+    entrypoint: >
+      /bin/sh -c "
+        apt-get update && apt-get install -y netcat && echo 'Netcat instalado' &&
+        curl -o /usr/local/bin/trino https://repo1.maven.org/maven2/io/trino/trino-cli/447/trino-cli-447-executable.jar && echo 'trino-cli baixado com sucesso' &&
+        chmod +x /usr/local/bin/trino && echo 'trino-cli permissões alteradas' &&
+        while ! nc -z trino 8080; do echo '⏳ Esperando o Trino...'; sleep 10; done &&
+        exec tail -f /dev/null"
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://trino:8080/v1/info"]
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+
   # ☁️ MinIO for S3-like storage
   minio:
     image: quay.io/minio/minio
     container_name: minio
+    networks:
+      - trino-network
     restart: always
     ports:
       - "9000:9000"   # S3 API
@@ -90,6 +118,8 @@ services:
   minio-client:
     image: minio/mc
     container_name: minio-client
+    networks:
+      - trino-network
     depends_on:
       - minio
     entrypoint: >
@@ -110,3 +140,9 @@ services:
 volumes:
   metastore-db-data:
   minio-data:
+
+networks:
+  trino-network:
+    name: trino-network
+    driver: bridge
+
