@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: hive
       POSTGRES_DB: metastore
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - metastore-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -19,7 +19,7 @@ services:
       start_period: 10s
       timeout: 10s
 
-   # 🐝 Apache Hive Metastore
+  # 🐝 Apache Hive Metastore
   hudi-hive-metastore:
     image: apache/hive:4.0.0-beta-1
     container_name: hive-metastore
@@ -47,23 +47,17 @@ services:
 
   # 📊 Trino Query Engine
   trino:
-    image: trinodb/trino:latest
-    container_name: trino
-    restart: always
+    image: trinodb/trino:latest  # This image already includes the Trino server
+    container_name: trino-server
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Expose the Trino port
     volumes:
-      - ./trino-config:/etc/trino
+      - ./trino-config:/etc/trino  # Mount your config directory
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+    entrypoint: /bin/bash -c "curl -o /tmp/trino-cli https://repo1.maven.org/maven2/io/trino/trino-cli/447/trino-cli-447-executable.jar && chmod +x /tmp/trino-cli && /bin/sh -c 'exec /opt/trino/bin/trino-server'"
     depends_on:
-      - hive-metastore
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-          cpus: '2'
-        reservations:
-          memory: 2G
-          cpus: '1'
+      - hudi-hive-metastore
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
       interval: 30s

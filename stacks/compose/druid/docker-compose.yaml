@@ -29,6 +29,7 @@ volumes:
 
 
 services:
+  # 🐘 PostgreSQL for Druid Metadata
   postgres:
     container_name: postgres
     image: postgres:latest
@@ -40,8 +41,14 @@ services:
       - POSTGRES_PASSWORD=FoolishPassword
       - POSTGRES_USER=druid
       - POSTGRES_DB=druid
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "druid", "-d", "druid", "-h", "localhost"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
-  # Need 3.5 or later for container nodes
+  # 🦓 Zookeeper
   zookeeper:
     container_name: zookeeper
     image: zookeeper:3.9.3
@@ -49,7 +56,14 @@ services:
       - "2181:2181"
     environment:
       - ZOO_MY_ID=1
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost", "2181"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
+  # 🧑‍🏫 Coordinator
   coordinator:
     image: apache/druid:32.0.1
     container_name: coordinator
@@ -65,7 +79,14 @@ services:
       - coordinator
     env_file:
       - environment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/druid/coordinator/v1/status"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
+  # 🏋️‍♂️ Broker
   broker:
     image: apache/druid:32.0.1
     container_name: broker
@@ -81,7 +102,14 @@ services:
       - broker
     env_file:
       - environment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/druid/broker/v1/status"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
+  # 🕰️ Historical
   historical:
     image: apache/druid:32.0.1
     container_name: historical
@@ -98,7 +126,14 @@ services:
       - historical
     env_file:
       - environment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/druid/historical/v1/status"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
+  # 🤹‍♀️ Middlemanager
   middlemanager:
     image: apache/druid:32.0.1
     container_name: middlemanager
@@ -116,7 +151,14 @@ services:
       - middleManager
     env_file:
       - environment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/druid/middleManager/v1/status"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
+  # 🛣️ Router
   router:
     image: apache/druid:32.0.1
     container_name: router
@@ -132,3 +174,9 @@ services:
       - router
     env_file:
       - environment
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/druid/router/v1/status"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s

@@ -10,7 +10,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mlflow_user", "-d", "mlflow_db"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+      start_period: 10s
   
   # 📊 MLflow
   mlflow:
@@ -25,6 +31,12 @@ services:
     command: mlflow server --host 0.0.0.0 --port 5000 --default-artifact-root /mlflow
     depends_on:
       - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+      start_period: 10s
 
 volumes:
   mlflow_data:
