@@ -71,7 +71,7 @@ services:
 
   # 🧭 Trino CLI
   trino-cli:
-    image: openjdk:11
+    image: openjdk:11.0.16
     container_name: trino-cli
     networks:
       - trino-network
