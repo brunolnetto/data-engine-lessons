@@ -1,7 +1,7 @@
 services:
   # 👑 Apache Spark Master
   spark-master:
-    image: bitnami/spark:3.5.5
+    image: bitnami/spark:4.0.0
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -24,7 +24,7 @@ services:
 
   # 🔥 Apache Spark Workers
   spark-worker:
-    image: bitnami/spark:3.5.5
+    image: bitnami/spark:4.0.0
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
