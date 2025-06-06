@@ -20,7 +20,7 @@ services:
   
   # 📊 MLflow
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.21.3
+    image: ghcr.io/mlflow/mlflow:v2.22.1
     container_name: mlflow
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
