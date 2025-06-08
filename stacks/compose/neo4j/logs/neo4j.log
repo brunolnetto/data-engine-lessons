@@ -1,0 +1,36 @@
+2025-06-06 10:38:33.307+0000 INFO  Logging config in use: File '/var/lib/neo4j/conf/user-logs.xml'
+2025-06-06 10:38:33.339+0000 INFO  Starting...
+2025-06-06 10:38:38.024+0000 INFO  This instance is ServerId{8835ea3d} (8835ea3d-c795-4789-9706-0613a106d612)
+2025-06-06 10:38:42.441+0000 INFO  ======== Neo4j 2025.05.0 ========
+2025-06-06 10:38:52.228+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j.com/docs/usage-data/
+2025-06-06 10:38:53.460+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+2025-06-06 10:38:54.700+0000 INFO  HTTP enabled on 0.0.0.0:7474.
+2025-06-06 10:38:54.701+0000 INFO  Remote interface available at http://localhost:7474/
+2025-06-06 10:38:54.707+0000 INFO  id: 284D1E4728711F0C574EB13E9A13F0B77C49CF7E1B060C943A9836E6933349E2
+2025-06-06 10:38:54.708+0000 INFO  name: system
+2025-06-06 10:38:54.709+0000 INFO  creationDate: 2025-06-06T10:38:45.753Z
+2025-06-06 10:38:54.710+0000 INFO  Started.
+2025-06-08 14:22:56.123+0000 INFO  Logging config in use: File '/var/lib/neo4j/conf/user-logs.xml'
+2025-06-08 14:22:56.174+0000 INFO  Starting...
+2025-06-08 14:22:58.798+0000 INFO  This instance is ServerId{8835ea3d} (8835ea3d-c795-4789-9706-0613a106d612)
+2025-06-08 14:23:02.725+0000 INFO  ======== Neo4j 2025.05.0 ========
+2025-06-08 14:23:07.885+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j.com/docs/usage-data/
+2025-06-08 14:23:08.665+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+2025-06-08 14:23:11.695+0000 INFO  HTTP enabled on 0.0.0.0:7474.
+2025-06-08 14:23:11.698+0000 INFO  Remote interface available at http://localhost:7474/
+2025-06-08 14:23:11.710+0000 INFO  id: 284D1E4728711F0C574EB13E9A13F0B77C49CF7E1B060C943A9836E6933349E2
+2025-06-08 14:23:11.712+0000 INFO  name: system
+2025-06-08 14:23:11.713+0000 INFO  creationDate: 2025-06-06T10:38:45.753Z
+2025-06-08 14:23:11.715+0000 INFO  Started.
+2025-06-08 14:44:19.318+0000 INFO  Logging config in use: File '/var/lib/neo4j/conf/user-logs.xml'
+2025-06-08 14:44:19.361+0000 INFO  Starting...
+2025-06-08 14:44:21.474+0000 INFO  This instance is ServerId{8835ea3d} (8835ea3d-c795-4789-9706-0613a106d612)
+2025-06-08 14:44:23.914+0000 INFO  ======== Neo4j 2025.05.0 ========
+2025-06-08 14:44:33.372+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j.com/docs/usage-data/
+2025-06-08 14:44:34.205+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+2025-06-08 14:44:36.965+0000 INFO  HTTP enabled on 0.0.0.0:7474.
+2025-06-08 14:44:36.967+0000 INFO  Remote interface available at http://localhost:7474/
+2025-06-08 14:44:36.974+0000 INFO  id: 284D1E4728711F0C574EB13E9A13F0B77C49CF7E1B060C943A9836E6933349E2
+2025-06-08 14:44:36.975+0000 INFO  name: system
+2025-06-08 14:44:36.976+0000 INFO  creationDate: 2025-06-06T10:38:45.753Z
+2025-06-08 14:44:36.976+0000 INFO  Started.
